@@ -2,6 +2,7 @@ package de.diavololoop.simulation;
 
 import de.diavololoop.util.Vec;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,19 +19,24 @@ public class GameObjectElement {
     private Vec bufferPosition;
     private Vec bufferSpeed;
 
-    private double mass = 10;
-    private double softness = 1e-6;
+    private double mass;
+    private double softness = 1e10;
 
     private Vec tempForce = new Vec(); //temporary used in simulate()
     private Vec tempForceObject = new Vec(); //temporary used in simulate()
 
+    private Color color;
+
     ArrayList<Connection> connections = new ArrayList<Connection>();
 
-    public GameObjectElement(double x, double y){
+    public GameObjectElement(double x, double y, double mass, Color color){
         this.position = new Vec(x, y);
         this.bufferPosition = new Vec(x, y);
         this.speed = new Vec();
         this.bufferSpeed = new Vec();
+
+        this.mass = mass;
+        this.color = color;
     }
 
     public void addConnection(List<GameObjectElement> others, int type){
@@ -46,7 +52,8 @@ public class GameObjectElement {
     }
 
     public void simulate(Vec force, double dt){
-        tempForce.set(0, 0);
+        force.cloneTo(tempForce);
+        tempForce.multiply(mass);
 
         connections.stream().forEach(con -> {
             con.other.position.cloneTo(tempForceObject);
@@ -54,7 +61,7 @@ public class GameObjectElement {
             double length = tempForceObject.length();
             switch(con.type){
                 case TYPE_FREE:
-                    tempForceObject.multiply(-length*softness/* (*length/length) */);
+                    tempForceObject.multiply(-softness/Math.pow(length, 5+1));
                     break;
             }
 
@@ -95,6 +102,18 @@ public class GameObjectElement {
         }
     }
 
+    Drawing dr = new Drawing();
+    public Drawing getPosition(){
+        dr.color = color;
+        dr.pos = position;
+        return dr;
+    }
+
+    public class Drawing{
+        public Vec pos;
+        public Color color;
+
+    }
 
     class Connection {
 
@@ -112,7 +131,4 @@ public class GameObjectElement {
 
     }
 
-    public Vec getPosition(){
-        return position;
-    }
 }

@@ -1,6 +1,7 @@
 package de.diavololoop.gui.swing;
 
 import de.diavololoop.simulation.GameObject;
+import de.diavololoop.simulation.GameObjectElement;
 import de.diavololoop.util.Vec;
 
 import javax.swing.*;
@@ -17,33 +18,47 @@ import java.util.Random;
 public class Gui extends JPanel {
 
     public static void main(String[] args) throws InterruptedException {
+        System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
+
         GameObject generic = new GameObject();
         Gui gui = new Gui();
 
-        generic.addRect(10, 10, -200, -200, 400, 400);
+        generic.addRect(10, 10, -200, -200, 400, 400, Color.GREEN, 0.5);
+        generic.addRect(5, 5, -200, 500, 400, 200, Color.BLUE, 20);
         generic.linkAll();
 
-        ArrayList<Vec> positions = new ArrayList<Vec>();
+        ArrayList<GameObjectElement.Drawing> positions = new ArrayList<GameObjectElement.Drawing>();
         generic.addDisplayable(positions);
 
-        long time = System.nanoTime();
+
 
         Thread.sleep(15);
+        Thread t = new Thread(() -> {
 
-        while(true){
-            long current = System.nanoTime();
-            long dt = current - time; //nanoseconds
-            time = current;
+            long time = System.nanoTime();
 
-            generic.simulate(dt*1e-9);
-            generic.checkForBounds(gui.x0, gui.x1, gui.y0, gui.y1);
-            generic.flipBuffer();
+            while(gui.isVisible()){
+                long current = System.nanoTime();
+                long dt = current - time; //nanoseconds
+                time = current;
 
+                generic.simulate(dt*1e-9 *1e-1);
+                generic.checkForBounds(gui.x0, gui.x1, gui.y0, gui.y1, dt);
+                generic.flipBuffer();
+            }
+
+        });
+        t.start();
+
+
+        while(gui.isVisible()){
             gui.draw(positions);
             gui.repaint();
 
-            Thread.sleep(15);
+            Thread.sleep(20);
         }
+
+
 
     }
 
@@ -88,7 +103,7 @@ public class Gui extends JPanel {
         }
     }
 
-    public void draw(ArrayList<Vec> positions){
+    public void draw(ArrayList<GameObjectElement.Drawing> positions){
         if(buffer == null || buffer.getWidth()!=getWidth() || buffer.getHeight()!=getHeight()){
             buffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
             bufferG = buffer.createGraphics();
@@ -100,9 +115,10 @@ public class Gui extends JPanel {
         //Random rand = new Random();bufferG.setColor(new Color(rand.nextInt(255), rand.nextInt(255), rand.nextInt(255)));
         bufferG.setColor(Color.BLACK);
 
-        positions.stream().filter(pos -> pos.x>x0 && pos.x<x1 && pos.y>y0 && pos.y<y1)
-                .forEach(pos -> {
-                    bufferG.fillOval((int)((pos.x-x0) / zoom)-4, (int)((pos.y-y0) / zoom)-4, 8, 8);
+        positions.stream().filter(dr -> dr.pos.x>x0 && dr.pos.x<x1 && dr.pos.y>y0 && dr.pos.y<y1)
+                .forEach(dr -> {
+                    bufferG.setColor(dr.color);
+                    bufferG.fillOval((int)((dr.pos.x-x0) / zoom)-4, getHeight()-(int)((dr.pos.y-y0) / zoom)-4, 8, 8);
                 });
 
     }

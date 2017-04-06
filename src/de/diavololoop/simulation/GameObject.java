@@ -2,6 +2,7 @@ package de.diavololoop.simulation;
 
 import de.diavololoop.util.Vec;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class GameObject {
 
     }
 
-    public void checkForBounds(double x0, double x1, double y0, double y1){
+    public void checkForBounds(double x0, double x1, double y0, double y1, double dt){
         elements.parallelStream().forEach(obj -> obj.checkForBounds(x0, x1, y0, y1));
     }
 
@@ -33,17 +34,18 @@ public class GameObject {
         elements.parallelStream().forEach(obj -> obj.addConnection(elements, GameObjectElement.TYPE_FREE));
     }
 
-    public void addDisplayable(List<Vec> positions){
+    public void addDisplayable(List<GameObjectElement.Drawing> positions){
         elements.stream().forEach(obj -> positions.add(obj.getPosition()));
     }
 
-    public void addRect(int cols, int rows, double x, double y, double width, double height){
+    public void addRect(int cols, int rows, double x, double y, double width, double height, Color color, double mass){
+
         for(int i = 0; i < cols; ++i){
             for(int j = 0; j < rows; ++j){
-                double px = x + i*width/(cols-2);
-                double py = y + j*height/(rows-2);
+                double px = x + (Math.random()/2+i)*width/(cols-2);
+                double py = y + (Math.random()/2+j)*height/(rows-2);
 
-                elements.add(new GameObjectElement(px, py));
+                elements.add(new GameObjectElement(px, py, mass, color));
             }
         }
     }
