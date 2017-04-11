@@ -12,6 +12,7 @@ import java.util.List;
 public class GameObjectElement {
 
     public final static int TYPE_FREE = 0;
+    public final static int TYPE_SOLID = 1;
 
     private Vec position;
     private Vec speed;
@@ -63,6 +64,9 @@ public class GameObjectElement {
                 case TYPE_FREE:
                     tempForceObject.multiply(-softness/Math.pow(length, 5+1));
                     break;
+                case TYPE_SOLID:
+                    tempForceObject.multiply(1/Math.pow(con.length, 6)*(length - con.length)*softness);
+                    break;
             }
 
 
@@ -102,16 +106,58 @@ public class GameObjectElement {
         }
     }
 
-    Drawing dr = new Drawing();
-    public Drawing getPosition(){
+
+    public void addPosition(List<Drawing> list){
+        Drawing dr = new Drawing();
+
         dr.color = color;
         dr.pos = position;
-        return dr;
+        list.add(dr);
+
+        connections.stream().filter(con -> con.type == TYPE_SOLID).forEach(con -> {
+            ConnectionDrawing cdr = new ConnectionDrawing();
+            cdr.color = color;
+            cdr.pos = position;
+            cdr.pos2 = con.other.position;
+            cdr.length = con.length;
+
+            if(con.length < 1) {
+                list.add(cdr);
+            }
+        });
     }
 
     public class Drawing{
         public Vec pos;
         public Color color;
+
+        public void draw(Graphics2D g, double x0, double y0, double zoom, int height){
+            g.setColor(color);
+            g.fillOval((int)((pos.x-x0) / zoom)-4, height-(int)((pos.y-y0) / zoom)-4, 8, 8);
+
+        }
+
+    }
+
+    public class ConnectionDrawing extends Drawing{
+
+        public Vec pos2;
+        public double length;
+
+        @Override
+        public void draw(Graphics2D g, double x0, double y0, double zoom, int height){
+            Color c;
+
+            if(pos.lengthTo(pos2) > length){
+                c = Color.RED;
+            }else{
+                c = Color.BLUE;
+            }
+
+            g.setColor(c);
+            g.drawLine((int)((pos.x-x0) / zoom), height-(int)((pos.y-y0) / zoom),
+                    (int)((pos2.x-x0) / zoom), height-(int)((pos2.y-y0) / zoom));
+        }
 
     }
 

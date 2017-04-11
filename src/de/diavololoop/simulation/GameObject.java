@@ -18,6 +18,8 @@ public class GameObject {
 
     }
 
+
+
     public void checkForBounds(double x0, double x1, double y0, double y1, double dt){
         elements.parallelStream().forEach(obj -> obj.checkForBounds(x0, x1, y0, y1));
     }
@@ -31,19 +33,23 @@ public class GameObject {
     }
 
     public void linkAll(){
-        elements.parallelStream().forEach(obj -> obj.addConnection(elements, GameObjectElement.TYPE_FREE));
+        elements.parallelStream().forEach(obj -> obj.addConnection(elements, GameObjectElement.TYPE_SOLID));
     }
 
     public void addDisplayable(List<GameObjectElement.Drawing> positions){
-        elements.stream().forEach(obj -> positions.add(obj.getPosition()));
+        elements.stream().forEach(obj -> obj.addPosition(positions));
     }
 
     public void addRect(int cols, int rows, double x, double y, double width, double height, Color color, double mass){
 
         for(int i = 0; i < cols; ++i){
             for(int j = 0; j < rows; ++j){
-                double px = x + (Math.random()/2+i)*width/(cols-2);
-                double py = y + (Math.random()/2+j)*height/(rows-2);
+                //double px = x + (Math.random()/2+i)*width/(cols-2);
+                //double py = y + (Math.random()/2+j)*height/(rows-2);
+
+
+                double px = x + i*width/(cols);
+                double py = y + j*height/(rows);
 
                 elements.add(new GameObjectElement(px, py, mass, color));
             }

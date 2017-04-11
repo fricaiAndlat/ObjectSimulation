@@ -23,8 +23,12 @@ public class Gui extends JPanel {
         GameObject generic = new GameObject();
         Gui gui = new Gui();
 
+        Thread.sleep(50);
+
         generic.addRect(10, 10, -200, -200, 400, 400, Color.GREEN, 0.5);
-        generic.addRect(5, 5, -200, 500, 400, 200, Color.BLUE, 20);
+
+        //generic.addRect(10, 10, -200, -200, 400, 400, Color.GREEN, 0.5);
+        //generic.addRect(5, 5, -200, 500, 400, 200, Color.BLUE, 20);
         generic.linkAll();
 
         ArrayList<GameObjectElement.Drawing> positions = new ArrayList<GameObjectElement.Drawing>();
@@ -42,7 +46,7 @@ public class Gui extends JPanel {
                 long dt = current - time; //nanoseconds
                 time = current;
 
-                generic.simulate(dt*1e-9 *1e-1);
+                generic.simulate(dt*1e-9 *0.2);
                 generic.checkForBounds(gui.x0, gui.x1, gui.y0, gui.y1, dt);
                 generic.flipBuffer();
             }
@@ -73,7 +77,7 @@ public class Gui extends JPanel {
 
     public Gui(){
         JFrame frame = new JFrame();
-        frame.setSize(800, 800);
+        frame.setSize(800, 700);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -115,11 +119,9 @@ public class Gui extends JPanel {
         //Random rand = new Random();bufferG.setColor(new Color(rand.nextInt(255), rand.nextInt(255), rand.nextInt(255)));
         bufferG.setColor(Color.BLACK);
 
-        positions.stream().filter(dr -> dr.pos.x>x0 && dr.pos.x<x1 && dr.pos.y>y0 && dr.pos.y<y1)
-                .forEach(dr -> {
-                    bufferG.setColor(dr.color);
-                    bufferG.fillOval((int)((dr.pos.x-x0) / zoom)-4, getHeight()-(int)((dr.pos.y-y0) / zoom)-4, 8, 8);
-                });
+        positions.stream()
+                .filter(dr -> dr.pos.x>x0 && dr.pos.x<x1 && dr.pos.y>y0 && dr.pos.y<y1)
+                .forEach(dr -> dr.draw(bufferG, x0, y0, zoom, getHeight()));
 
     }
 
